@@ -174,6 +174,8 @@ public class Simulator implements JavaCardInterface {
             }
         }
         catch (Exception e) {
+            System.out.println("SW_APPLET_CREATION_FAILED: " + e.getMessage());
+            e.printStackTrace();
             SystemException.throwIt(SimulatorSystem.SW_APPLET_CREATION_FAILED);
         }
         return aid;

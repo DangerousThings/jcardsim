@@ -637,6 +637,9 @@ public class SimulatorRuntime {
         }
         catch (InvocationTargetException e) {
             try {
+                System.out.println("InvocationTargetException");
+                System.out.println(e.getCause().toString());
+                e.getCause().printStackTrace();
                 ISOException isoException = (ISOException) e.getCause();
                 throw isoException;
             } catch (ClassCastException cce){
