@@ -88,9 +88,11 @@ public class KeyBuilderProxy {
                 break;
 
             case KeyBuilder.TYPE_EC_FP_PUBLIC:
+                System.out.println("buildKey TYPE_EC_FP_PUBLIC");
                 key = new ECPublicKeyImpl(keyType, keyLength);
                 break;
             case KeyBuilder.TYPE_EC_FP_PRIVATE:
+                System.out.println("buildKey TYPE_EC_FP_PRIVATE");
                 key = new ECPrivateKeyImpl(keyType, keyLength);
                 break;
 
@@ -125,10 +127,10 @@ public class KeyBuilderProxy {
                 break;
                 
             default:
+                System.out.println("NO_SUCH_ALGORITHM: " + String.valueOf(keyType));
                 CryptoException.throwIt(CryptoException.NO_SUCH_ALGORITHM);
                 break;
         }
         return key;
     }
-    
 }

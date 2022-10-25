@@ -58,6 +58,7 @@ public abstract class ECKeyImpl extends KeyImpl implements ECKey {
      * @see KeyBuilder
      */
     public ECKeyImpl(byte keyType, short keySize) {
+        System.out.println("ECKeyImpl: " + String.valueOf(keyType) + " " + String.valueOf(keySize));
         this.size = keySize;
         this.type = keyType;
         setDomainParameters(getDefaultsDomainParameters(type, size));
@@ -71,6 +72,7 @@ public abstract class ECKeyImpl extends KeyImpl implements ECKey {
      * @param parameters key params from BouncyCastle API
      */
     public ECKeyImpl(ECKeyParameters parameters) {
+        System.out.println("ECKeyImpl: " + parameters.toString());
         boolean isPrivate = parameters.isPrivate();
         boolean isF2M = parameters.getParameters().getCurve() instanceof ECCurve.F2m;
         type = isPrivate ? (isF2M ? KeyBuilder.TYPE_EC_F2M_PRIVATE : KeyBuilder.TYPE_EC_FP_PRIVATE)
@@ -255,6 +257,7 @@ public abstract class ECKeyImpl extends KeyImpl implements ECKey {
             case 409:
             case 571:
                 if ((keyType != KeyBuilder.TYPE_EC_F2M_PRIVATE) & (keyType != KeyBuilder.TYPE_EC_F2M_PUBLIC)) {
+                    System.out.println("ILLEGAL_VALUE: " + String.valueOf(keyType));
                     CryptoException.throwIt(CryptoException.ILLEGAL_VALUE);
                 }
                 curveName = "sect" + keySize + "r1";
@@ -268,11 +271,13 @@ public abstract class ECKeyImpl extends KeyImpl implements ECKey {
             case 384:
             case 521:
                 if ((keyType != KeyBuilder.TYPE_EC_FP_PRIVATE) & (keyType != KeyBuilder.TYPE_EC_FP_PUBLIC)) {
+                    System.out.println("ILLEGAL_VALUE: " + String.valueOf(keyType));
                     CryptoException.throwIt(CryptoException.ILLEGAL_VALUE);
                 }
                 curveName = "secp" + keySize + "r1";
                 break;
             default:
+                System.out.println("ILLEGAL_VALUE 2: " + String.valueOf(keySize));
                 CryptoException.throwIt(CryptoException.ILLEGAL_VALUE);
                 break;
         }

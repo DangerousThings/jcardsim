@@ -541,7 +541,7 @@ public class SimulatorRuntime {
      * @return always false
      */
     public boolean isObjectDeletionSupported() {
-        return false;
+        return true;
     }
 
     /**
