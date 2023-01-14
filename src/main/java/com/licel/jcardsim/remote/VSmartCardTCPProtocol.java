@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
  * @author alex@cooperi.net
  */
 public class VSmartCardTCPProtocol {
+    private String host;
+    private int port;
     private Socket socket;
     private InputStream  dataInput;
     private OutputStream dataOutput;
@@ -46,7 +48,9 @@ public class VSmartCardTCPProtocol {
     public static final int APDU = -1;
 
     public void connect(String host, int port) throws IOException {
-        socket = new Socket(host, port);
+        this.host = host;
+        this.port = port;
+        socket = new Socket(this.host, this.port);
 
         try {
             TimeUnit.SECONDS.sleep(3);
@@ -58,6 +62,16 @@ public class VSmartCardTCPProtocol {
 
     public void disconnect() {
         closeSocket(socket);
+    }
+
+    public void reconnect() {
+        try {
+            disconnect();
+            TimeUnit.SECONDS.sleep(5);
+            connect(this.host, this.port);
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
     }
 
     public int readCommand() throws IOException {

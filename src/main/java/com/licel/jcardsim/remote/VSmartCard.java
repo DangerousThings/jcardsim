@@ -1,9 +1,6 @@
 /*
-<<<<<<< HEAD
  * Copyright 2018 Joyent, Inc
  * Copyright 2020 The University of Queensland
-=======
->>>>>>> 5389ece... Add support for vsmartcard/vpcd integration, fix up stuff for PivApplet
  * Copyright 2013 Licel LLC.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +24,11 @@ import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
+import java.net.SocketException;
 
 /**
  * VSmartCard Card Implementation.
@@ -86,20 +88,25 @@ public class VSmartCard {
     private void startThread(VSmartCardTCPProtocol driverProtocol) throws IOException {
         sim = new Simulator();
         final IOThread ioThread = new IOThread(sim, driverProtocol);
-        ShutDownHook hook = new ShutDownHook(ioThread);
+        final KeyThread keyThread = new KeyThread(driverProtocol);
+        ShutDownHook hook = new ShutDownHook(ioThread, keyThread);
         Runtime.getRuntime().addShutdownHook(hook);
         ioThread.start();
+        keyThread.start();
     }
 
     static class ShutDownHook extends Thread {
         IOThread ioThread;
+        KeyThread keyThread;
 
-        public ShutDownHook(IOThread ioThread) {
+        public ShutDownHook(IOThread ioThread, KeyThread keyThread) {
             this.ioThread = ioThread;
+            this.keyThread = keyThread;
         }
 
         public void run() {
             ioThread.isRunning = false;
+            keyThread.isRunning = false;
             System.out.println("Shutdown connections");
             ioThread.driverProtocol.disconnect();
         }
@@ -114,25 +121,25 @@ public class VSmartCard {
             this.sim = sim;
             this.driverProtocol = driverProtocol;
             isRunning = true;
-    }
-
-    private void hexDump(byte[] apdu) {
-        for (int i = 0; i < apdu.length; i += 8) {
-            System.out.printf("%04X:  ", i);
-            for (int j = i; j < i + 4; ++j) {
-                if (j >= apdu.length)
-                    break;
-                System.out.printf("%02X ", apdu[j]);
-            }
-            System.out.printf(" ");
-            for (int j = i + 4; j < i + 8; ++j) {
-                if (j >= apdu.length)
-                    break;
-                System.out.printf("%02X ", apdu[j]);
-            }
-            System.out.printf("\n");
         }
-    }
+
+        private void hexDump(byte[] apdu) {
+            for (int i = 0; i < apdu.length; i += 8) {
+                System.out.printf("%04X:  ", i);
+                for (int j = i; j < i + 4; ++j) {
+                    if (j >= apdu.length)
+                        break;
+                    System.out.printf("%02X ", apdu[j]);
+                }
+                System.out.printf(" ");
+                for (int j = i + 4; j < i + 8; ++j) {
+                    if (j >= apdu.length)
+                        break;
+                    System.out.printf("%02X ", apdu[j]);
+                }
+                System.out.printf("\n");
+            }
+        }
 
         @Override
         public void run() {
@@ -156,6 +163,34 @@ public class VSmartCard {
                             hexDump(reply);
                             driverProtocol.writeData(reply);
                             break;
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.toString());
+                }
+            }
+        }
+    }
+
+    static class KeyThread extends Thread {
+        VSmartCardTCPProtocol driverProtocol;
+        boolean isRunning;
+
+        public KeyThread(VSmartCardTCPProtocol driverProtocol) {
+            this.driverProtocol = driverProtocol;
+            isRunning = true;
+        }
+
+        @Override
+        public void run() {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("== Listening for command keys");
+            while (isRunning) {
+                try {
+                    String cmd = reader.readLine();
+                    if(cmd.equals("r")) {
+                        System.out.println("== Resetting socket...");
+                        driverProtocol.reconnect();
+                        System.out.println("== Socket was reset");
                     }
                 } catch (Exception e) {
                     System.out.println(e.toString());

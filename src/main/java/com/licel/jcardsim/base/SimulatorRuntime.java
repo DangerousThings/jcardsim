@@ -303,12 +303,15 @@ public class SimulatorRuntime {
             applet.process(apdu);
             Util.setShort(theSW, (short) 0, (short) 0x9000);
         } catch (Throwable e) {
-            e.printStackTrace(System.out);
             Util.setShort(theSW, (short) 0, ISO7816.SW_UNKNOWN);
             if (e instanceof CardException) {
                 Util.setShort(theSW, (short) 0, ((CardException) e).getReason());
             } else if (e instanceof CardRuntimeException) {
                 Util.setShort(theSW, (short) 0, ((CardRuntimeException) e).getReason());
+            }
+            if(!(theSW[0] == (byte)0x90 && theSW[1] == (byte)0x00))
+            {
+                e.printStackTrace(System.out);
             }
         }
         finally {
