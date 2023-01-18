@@ -88,7 +88,7 @@ public class VSmartCard {
     private void startThread(VSmartCardTCPProtocol driverProtocol) throws IOException {
         sim = new Simulator();
         final IOThread ioThread = new IOThread(sim, driverProtocol);
-        final KeyThread keyThread = new KeyThread(driverProtocol);
+        final KeyThread keyThread = new KeyThread(sim, driverProtocol);
         ShutDownHook hook = new ShutDownHook(ioThread, keyThread);
         Runtime.getRuntime().addShutdownHook(hook);
         ioThread.start();
@@ -164,6 +164,7 @@ public class VSmartCard {
                             driverProtocol.writeData(reply);
                             break;
                     }
+                } catch (SocketException se) {
                 } catch (Exception e) {
                     System.out.println(e.toString());
                 }
@@ -173,9 +174,11 @@ public class VSmartCard {
 
     static class KeyThread extends Thread {
         VSmartCardTCPProtocol driverProtocol;
+        Simulator sim;
         boolean isRunning;
 
-        public KeyThread(VSmartCardTCPProtocol driverProtocol) {
+        public KeyThread(Simulator sim, VSmartCardTCPProtocol driverProtocol) {
+            this.sim = sim;
             this.driverProtocol = driverProtocol;
             isRunning = true;
         }
@@ -189,6 +192,9 @@ public class VSmartCard {
                     String cmd = reader.readLine();
                     if(cmd.equals("r")) {
                         System.out.println("== Resetting socket...");
+                        driverProtocol.disconnect();
+                        sim.reset();
+                        System.out.println("== Simulation was reset");
                         driverProtocol.reconnect();
                         System.out.println("== Socket was reset");
                     }
