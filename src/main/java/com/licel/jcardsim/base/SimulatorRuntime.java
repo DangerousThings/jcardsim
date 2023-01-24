@@ -309,8 +309,12 @@ public class SimulatorRuntime {
             } else if (e instanceof CardRuntimeException) {
                 Util.setShort(theSW, (short) 0, ((CardRuntimeException) e).getReason());
             }
-            if(!(theSW[0] == (byte)0x90 && theSW[1] == (byte)0x00))
-            {
+            if((theSW[0] == (byte)0x90 && theSW[1] == (byte)0x00)) {
+                System.out.println("Ignored exception: SW=9000 (Success)");
+            } else if(theSW[0] == (byte)0x61) {
+                System.out.println("Ignored exception: SW=61XX (Success, " + 
+                    (((int) theSW[1]) & 0xff) + " more bytes available)");
+            } else {
                 e.printStackTrace(System.out);
             }
         }
