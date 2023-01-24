@@ -241,12 +241,18 @@ public class SimulatorRuntime {
     public byte[] transmitCommand(byte[] command) throws SystemException {
         activateSimulatorRuntimeInstance();
 
-        final ApduCase apduCase = ApduCase.getCase(command);
         final byte[] theSW = new byte[2];
+        final ApduCase apduCase;
+        try {
+            apduCase = ApduCase.getCase(command);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid APDU: " + e.getMessage());
+            Util.setShort(theSW, (short) 0, ISO7816.SW_WRONG_LENGTH);
+            return theSW;
+        }
+        
         byte[] response;
-
         Applet applet = getApplet(getAID());
-
         selecting = false;
         // check if there is an applet to be selected
         if (!apduCase.isExtended() && isAppletSelectionApdu(command)) {
