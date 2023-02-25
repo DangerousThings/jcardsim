@@ -190,7 +190,7 @@ public class VSmartCard {
             while (isRunning) {
                 try {
                     String cmd = reader.readLine();
-                    if(cmd.equals("r")) {
+                    if(cmd != null && cmd.equals("r")) {
                         System.out.println("== Resetting socket...");
                         driverProtocol.disconnect();
                         sim.reset();

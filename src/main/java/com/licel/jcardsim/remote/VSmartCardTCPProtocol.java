@@ -66,7 +66,7 @@ public class VSmartCardTCPProtocol {
 
     public void reconnect() {
         try {
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(3);
             connect(this.host, this.port);
         } catch (Exception e) {
             System.out.println(e.toString());
